@@ -61,6 +61,7 @@ body{height:100vh;height:100svh;overflow:hidden;padding:0}
 .dots button:hover{background:var(--accent-soft)}
 .dots button[aria-current="true"]{background:var(--accent-soft);color:var(--accent);font-weight:700;box-shadow:inset 0 0 0 2px var(--accent)}
 @media (max-width:640px){.slidenav{bottom:28px;gap:6px;padding:6px}.slidenav button{width:40px;height:40px;font-size:22px}.dots{gap:2px}.dots button{font-size:13px;padding:8px 9px}}
+@media (max-width:420px){.slidenav{bottom:20px;gap:2px;padding:5px}.slidenav button{width:34px;height:34px;font-size:20px}.dots{gap:0}.dots button{font-size:12px;padding:7px 6px}}
 .hero .wrap{padding-block:64px;text-align:center}
 .enter{margin-top:40px;font:inherit;font-size:17px;font-weight:700;background:var(--accent);color:var(--accent-fg);border:0;border-radius:999px;padding:14px 36px;cursor:pointer}
 .enter:hover{filter:brightness(1.06)}
@@ -273,6 +274,52 @@ h1,h2,.panel h3.pt,.stat .n,.goal,.copy .q,.psec > h4,.card h3,.persona h3{font-
 th{background:var(--t,var(--accent-soft))}
 .phones{border-radius:24px}
 @media (max-width:760px){.sec > h2{font-size:26px}.goal{padding-left:44px}}
+
+/* ===== 폰 화면 맞춤: 가로로 잘리지 않도록 폭을 화면에 고정 ===== */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.hero{grid-template-columns:minmax(0,1fr)}
+.grid2>*,.grid3>*,.grid4>*,.pgrid>*,.who>*,.swot>*,.phones>*,.flow .st>*{min-width:0}
+.card,.stat,.persona,.copy,.box,.note,.gap,.promise,.usp,td,th,h1,h2,h3,h4,p,li{overflow-wrap:anywhere}
+@media (max-width:760px){
+  .grid2,.grid3,.grid4,.pgrid,.who,.swot{grid-template-columns:minmax(0,1fr)}
+  .wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .hero .wrap{padding-block:56px 40px}
+  .hero h1{font-size:clamp(30px,9.4vw,40px)}
+  .hero p.lead{font-size:16px;line-height:1.8}
+  .hero .meta{margin-top:24px}
+  .enter{width:100%;max-width:320px;margin-top:28px}
+  .slide{padding-bottom:128px}
+  .sec{padding-block:32px}
+  .stat .n{font-size:26px}
+  .goal{font-size:19px}
+  .panel{padding:20px 16px;border-radius:22px}
+  .panel h3.pt{font-size:25px}
+  .panel .one{font-size:16px}
+  .psec > h4{font-size:21px}
+  .tabs-scroll{margin-inline:0;padding:0;overflow:visible}
+  .tablist{grid-template-columns:repeat(2,minmax(0,1fr));min-width:0}
+  .tab:last-child{grid-column:1 / -1}
+  .tab{padding:12px 14px}
+  .pin{gap:6px}
+  .pin button{font-size:13px;padding:7px 12px}
+  .phones{padding:20px 8px;gap:24px}
+  .phone-wrap{flex:1 1 100%;max-width:300px}
+  .legend{flex-direction:column;gap:8px}
+  /* 표는 가로로 넘기지 않고 칸마다 이름표가 붙은 카드로 쌓는다 */
+  table{min-width:0}
+  thead{position:absolute;left:-9999px}
+  table,tbody,tr,td{display:block;width:100%}
+  tr{padding:10px 4px;border-bottom:1px solid var(--line)}
+  tr:last-child{border-bottom:0}
+  td{border:0;padding:6px 12px}
+  td::before{content:attr(data-label);display:block;font-size:12px;font-weight:700;letter-spacing:.05em;color:var(--muted)}
+  td:first-child{font-size:15px}
+  .slidenav{bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+}
+@media (max-width:360px){
+  .hero h1{font-size:29px}
+  .dots button{font-size:11.5px;padding:7px 5px}
+}
 </style>
 
 </head><body>
@@ -613,6 +660,12 @@ S.forEach(function(s,i){
   p.className="panel"; p.id="p-"+s.id; p.setAttribute("role","tabpanel"); p.setAttribute("aria-labelledby","tab-"+s.id); p.hidden=true;
   p.innerHTML=build(s);
   [].forEach.call(p.querySelectorAll(".psec"),function(el,k){ el.hidden=k>0; });
+  [].forEach.call(p.querySelectorAll("table"),function(tb){
+    var hs=[].map.call(tb.querySelectorAll("th"),function(th){return th.textContent});
+    [].forEach.call(tb.querySelectorAll("tbody tr"),function(tr){
+      [].forEach.call(tr.children,function(td,k){ td.setAttribute("data-label",hs[k]||""); });
+    });
+  });
   p.addEventListener("click",function(e){
     var t=e.target.closest&&e.target.closest("button[data-t]"); if(!t)return;
     subShow(p,t.getAttribute("data-t"));
