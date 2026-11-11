@@ -1,0 +1,726 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>센서리 프렌들리</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Gowun+Dodum&display=swap">
+<style>
+/* Layout: 한 칼럼. 공통(방향성·시장) → 서비스 5개 탭. 각 탭 안에 그 서비스의 현황, 화면, 검증, 3C·SWOT, STP, 페르소나, 퍼널, 홍보, 로드맵. 자극을 줄이는 서비스답게 움직임과 강한 대비를 쓰지 않는다. */
+:root{
+  --bg:#faf6ef; --surface:#fffdf9; --fg:#3b332b; --muted:#6b6056; --line:#eadfd0;
+  --accent:#8a5a3b; --accent-fg:#fffaf3; --accent-soft:#f6e9db; --note:#f3ecd9; --note-fg:#5a4f36;
+  --hero-a:#fbe9d6; --hero-b:#f3e6d3; --hero-c:#e6efe3;
+  --font:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1d1a16; --surface:#27231e; --fg:#efe7db; --muted:#b5a999; --line:#3a352d;
+    --accent:#e0b28c; --accent-fg:#2a1d12; --accent-soft:#3a2f25; --note:#322d1f; --note-fg:#e0d6bb;
+    --hero-a:#33271d; --hero-b:#2b241c; --hero-c:#242a22; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1d1a16; --surface:#27231e; --fg:#efe7db; --muted:#b5a999; --line:#3a352d;
+  --accent:#e0b28c; --accent-fg:#2a1d12; --accent-soft:#3a2f25; --note:#322d1f; --note-fg:#e0d6bb;
+  --hero-a:#33271d; --hero-b:#2b241c; --hero-c:#242a22; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:16px;line-height:1.75;
+  padding-block:0 64px;word-break:keep-all;overflow-wrap:break-word}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+h1,h2,h3,h4{line-height:1.3;text-wrap:balance;margin:0}
+p{margin:0}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:4px}
+.sec{padding-block:44px;border-top:1px solid var(--line)}
+.sec > h2{font-size:26px;letter-spacing:-.01em}
+.sec > .sub{color:var(--muted);margin-top:6px;max-width:40em}
+.sec .body{margin-top:24px}
+.kicker{font-size:13px;letter-spacing:.08em;color:var(--accent);font-weight:700;margin-bottom:8px}
+.note{margin-top:16px;background:var(--note);color:var(--note-fg);border-radius:10px;padding:12px 16px;font-size:14px}
+.scroll-x{overflow-x:auto}
+
+.hero{position:relative;overflow:hidden;margin-bottom:8px;border-bottom:1px solid var(--line);
+  background:
+    radial-gradient(60% 80% at 12% 10%,var(--hero-a) 0,transparent 70%),
+    radial-gradient(50% 70% at 92% 90%,var(--hero-c) 0,transparent 70%),
+    var(--hero-b)}
+body{height:100vh;height:100svh;overflow:hidden;padding:0}
+.deck{display:flex;height:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;overscroll-behavior-x:contain}
+.slide{flex:0 0 100%;width:100%;height:100%;overflow-y:auto;overflow-x:hidden;scroll-snap-align:start;scroll-snap-stop:always;padding-bottom:96px}
+.slide .sec{border-top:0}
+.hero{display:grid;align-items:center;margin-bottom:0;overflow-y:auto}
+.deck{transition:opacity .32s ease}
+.deck.fade{opacity:0}
+@media (prefers-reduced-motion: reduce){.deck{transition:none}}
+.slide{padding-bottom:140px}
+.slidenav{position:fixed;left:50%;bottom:44px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;background:var(--surface);border:2px solid var(--accent);border-radius:999px;padding:8px 10px;z-index:10;box-shadow:0 8px 28px rgba(90,60,30,.18);max-width:calc(100vw - 24px)}
+.slidenav button{font:inherit;font-size:26px;line-height:1;width:48px;height:48px;flex:none;border-radius:50%;border:0;background:var(--accent);color:var(--accent-fg);cursor:pointer}
+.slidenav button:disabled{opacity:.3;cursor:default}
+.dots{display:flex;gap:4px}
+.dots button{width:auto;height:auto;font-size:16px;font-weight:500;padding:10px 18px;border-radius:999px;background:transparent;color:var(--fg);white-space:nowrap}
+.dots button:hover{background:var(--accent-soft)}
+.dots button[aria-current="true"]{background:var(--accent-soft);color:var(--accent);font-weight:700;box-shadow:inset 0 0 0 2px var(--accent)}
+@media (max-width:640px){.slidenav{bottom:28px;gap:6px;padding:6px}.slidenav button{width:40px;height:40px;font-size:22px}.dots{gap:2px}.dots button{font-size:13px;padding:8px 9px}}
+.hero .wrap{padding-block:64px;text-align:center}
+.enter{margin-top:40px;font:inherit;font-size:17px;font-weight:700;background:var(--accent);color:var(--accent-fg);border:0;border-radius:999px;padding:14px 36px;cursor:pointer}
+.enter:hover{filter:brightness(1.06)}
+.enter::after{content:" →"}
+.hero h1{font-size:clamp(34px,6.4vw,60px);font-weight:700;letter-spacing:-.025em;max-width:14em;margin-inline:auto;line-height:1.28}
+.hero p.lead{margin:26px auto 0;font-size:clamp(17px,2.2vw,20px);color:var(--muted);max-width:30em;line-height:1.85}
+.hero .kicker{display:inline-block;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 14px;margin-bottom:22px}
+.hero .meta{margin-top:32px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.hero .jump{justify-content:center}
+.chip{font-size:13px;border:1px solid var(--line);border-radius:999px;padding:4px 12px;color:var(--muted);background:var(--surface)}
+.jump{display:flex;gap:6px 14px;flex-wrap:wrap;margin-top:28px;font-size:14px}
+.jump a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--line)}
+.jump a:hover{color:var(--accent);border-color:var(--accent)}
+
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px}
+.card h3{font-size:16px;margin-bottom:6px}
+.card p,.card li{font-size:14px;color:var(--muted)}
+.card ul{margin:8px 0 0;padding-left:18px;display:grid;gap:4px}
+.card .ex{margin-top:10px;font-size:13px;color:var(--accent);font-weight:500}
+.gap{margin-top:20px;background:var(--note);color:var(--note-fg);border-radius:10px;padding:14px 18px;font-size:14px}
+.goal{border-left:3px solid var(--accent);padding:4px 0 4px 16px;font-size:20px;max-width:30em;margin-top:18px}
+.principles .card b{display:block;color:var(--fg);font-size:15px;margin-bottom:4px}
+
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px}
+.stat .n{font-size:28px;font-weight:700;color:var(--accent);line-height:1.15;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stat .l{margin-top:8px;font-size:14px;color:var(--fg)}
+.stat .s{margin-top:6px;font-size:12px;color:var(--muted)}
+
+/* tabs */
+.tabs-scroll{overflow-x:auto;margin-inline:-4px;padding:4px}
+.tablist{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;min-width:720px}
+.tab{font:inherit;text-align:left;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.tab small{font-size:12px;color:var(--muted)}
+.tab b{font-size:15px;font-weight:700;line-height:1.35}
+.tab:hover{border-color:var(--accent)}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.tab[aria-selected="true"] small{color:var(--accent-fg);opacity:.85}
+.panel{margin-top:20px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:clamp(20px,4vw,40px)}
+.panel .tag{font-size:13px;font-weight:700;color:var(--accent);letter-spacing:.04em}
+.panel h3.pt{font-size:clamp(24px,4vw,32px);margin-top:6px;letter-spacing:-.01em}
+.panel .one{margin-top:12px;font-size:18px;max-width:36em}
+.pin{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.pin button{font:inherit;font-size:14px;background:var(--accent-soft);color:var(--accent);border:1px solid transparent;border-radius:999px;padding:7px 16px;cursor:pointer}
+.pin button:hover{border-color:var(--accent)}
+.pin button[aria-selected="true"]{background:var(--accent);color:var(--accent-fg);font-weight:700}
+.psec{margin-top:28px;scroll-margin-top:16px}
+.psec[hidden]{display:none}
+.psec,.panel{transition:opacity .3s ease}
+.psec.fade,.panel.fade{opacity:0}
+@media (prefers-reduced-motion: reduce){.psec,.panel{transition:none}}
+.psec > h4{font-size:20px;letter-spacing:-.01em;margin-bottom:6px}
+.psec > .lede{font-size:14px;color:var(--muted);margin-bottom:16px;max-width:42em}
+.psec h5{font-size:15px;margin:22px 0 10px}
+
+.badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;border-radius:4px;padding:1px 8px;margin-left:6px;vertical-align:middle;line-height:1.6}
+.badge.seg{background:var(--surface);color:var(--accent);border:1px solid var(--accent)}
+.badge.usp-b{background:var(--accent);color:var(--accent-fg);border:1px solid var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:14px;font-size:14px;color:var(--muted)}
+.legend span.t{color:var(--fg)}
+.pgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 36px;margin-top:8px}
+.blk h6{font-size:13px;letter-spacing:.06em;color:var(--muted);margin:0 0 10px;font-weight:700}
+.blk ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.blk li{padding-left:16px;position:relative}
+.blk li::before{content:"";position:absolute;left:0;top:.8em;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.blk.full{grid-column:1 / -1}
+.who{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.who div{background:var(--accent-soft);border-radius:8px;padding:12px 14px;font-size:14px}
+.who b{display:block;font-size:12px;color:var(--muted);margin-bottom:2px;letter-spacing:.04em}
+.usp{background:var(--accent-soft);border-radius:10px;padding:20px 22px}
+.usp h6{color:var(--accent)}
+.promise{background:var(--note);color:var(--note-fg);border-radius:10px;padding:16px 20px;font-size:15px}
+.promise b{display:block;font-size:13px;letter-spacing:.06em;margin-bottom:4px}
+
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:640px}
+th,td{text-align:left;vertical-align:top;padding:12px 14px;border-bottom:1px solid var(--line)}
+th{font-size:12px;letter-spacing:.05em;color:var(--muted);font-weight:700;background:var(--accent-soft)}
+td:first-child{font-weight:700}
+.tbl{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.pill{display:inline-block;font-size:12px;border-radius:999px;padding:2px 10px;background:var(--note);color:var(--note-fg);font-weight:500;white-space:nowrap}
+.src-tag{font-size:12px;color:var(--muted);display:block;margin-top:4px}
+
+.swot{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.swot .card h3{display:flex;gap:8px;align-items:baseline}
+.swot .card h3 i{font-style:normal;color:var(--accent);font-size:22px;font-weight:700}
+
+.persona{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:grid;gap:10px;align-content:start}
+.persona .top{display:flex;gap:12px;align-items:center}
+.avatar{width:44px;height:44px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700;flex:none;font-size:13px}
+.persona h3{font-size:17px}
+.persona .role{font-size:13px;color:var(--muted)}
+.persona dl{margin:0;display:grid;gap:8px;font-size:14px}
+.persona dt{font-size:12px;letter-spacing:.05em;color:var(--muted);font-weight:700}
+.persona dd{margin:0}
+
+.phones{display:flex;flex-wrap:wrap;gap:28px 24px;justify-content:center;padding:28px 12px;border-radius:18px;background:linear-gradient(135deg,var(--hero-a),var(--hero-c))}
+.phones{align-items:stretch}
+.phone-wrap{display:grid;grid-template-rows:1fr auto;gap:12px;justify-items:center;align-items:stretch;margin:0;flex:1 1 230px;max-width:272px}
+.phone-wrap .phone{align-self:stretch}
+.phone-wrap figcaption{align-self:end;text-align:center;line-height:1.4}
+.phone-wrap figcaption{font-size:14px;color:var(--fg);text-align:center;font-weight:700;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 14px}
+.phone{width:100%;background:var(--bg);border:7px solid color-mix(in srgb,var(--surface) 18%,#2b241d);box-shadow:0 0 0 1px var(--line),0 14px 30px rgba(90,60,30,.16);border-radius:36px;padding:14px;display:grid;gap:10px;align-content:start;min-height:480px;overflow:hidden;position:relative}
+.phone .bar{margin:-14px -14px 4px;padding:20px 14px 10px;background:var(--accent);color:var(--accent-fg);font-size:13px;font-weight:700;text-align:center;letter-spacing:.04em;position:relative}
+.phone .bar::before{content:"";position:absolute;top:7px;left:50%;transform:translateX(-50%);width:44px;height:5px;border-radius:99px;background:var(--accent-fg);opacity:.35}
+.phone h5{font-size:16px;margin:4px 0 0;line-height:1.35}
+.phone .box{background:var(--accent-soft);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.5}
+.phone .big{font-size:16px;font-weight:700}
+.phone .btn{background:var(--accent);color:var(--accent-fg);border-radius:12px;padding:11px;text-align:center;font-size:14px;font-weight:700}
+.phone .btn.ghost{background:var(--accent-soft);color:var(--accent)}
+.phone .row{display:flex;justify-content:space-between;gap:8px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:9px 11px;font-size:13px;background:var(--surface)}
+.phone .step{font-size:12px;color:var(--accent);font-weight:700}
+.phone .orig{font-size:12px;color:var(--muted);border-bottom:1px dashed var(--line);padding-bottom:8px}
+.phone .mic{width:64px;height:64px;border-radius:50%;background:var(--accent);color:var(--accent-fg);display:grid;place-items:center;font-size:13px;font-weight:700;justify-self:center;box-shadow:0 0 0 8px var(--accent-soft)}
+.phone .ex{font-size:11px;color:var(--muted);text-align:center;margin-top:auto}
+.phone .prog{display:flex;gap:4px}.phone .prog span{flex:1;height:6px;border-radius:99px;background:var(--line)}.phone .prog span.on{background:var(--accent)}
+.phone .bub{max-width:88%;padding:9px 12px;border-radius:16px 16px 16px 4px;font-size:13px;line-height:1.5;background:var(--accent-soft)}
+.phone .bub.me{justify-self:end;border-radius:16px 16px 4px 16px;background:var(--accent);color:var(--accent-fg)}
+.phone .tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.phone .tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 6px;text-align:center;font-size:13px;font-weight:700;color:var(--fg)}
+.phone .tile i{display:grid;place-items:center;width:36px;height:36px;margin:0 auto 6px;border-radius:12px;background:var(--accent-soft);color:var(--accent);font-style:normal;font-size:15px}
+.phone .tile.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.phone .sw{flex:none;width:36px;height:21px;border-radius:99px;background:var(--accent);position:relative}
+.phone .sw::after{content:"";position:absolute;right:3px;top:3px;width:15px;height:15px;border-radius:50%;background:var(--accent-fg)}
+.phone .sw.off{background:var(--line)}.phone .sw.off::after{right:auto;left:3px;background:var(--surface)}
+.phone .qr{width:104px;height:104px;margin:4px auto;border-radius:10px;border:7px solid var(--surface);outline:1px solid var(--line);background:repeating-conic-gradient(var(--fg) 0 25%,var(--surface) 0 50%) 0 0/14px 14px}
+.phone .thumb{height:84px;border-radius:12px;background:linear-gradient(135deg,var(--hero-a),var(--hero-c));display:grid;place-items:center;font-size:12px;color:var(--muted);border:1px solid var(--line)}
+.phone .thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.phone .thumbs .thumb{height:60px}.phone .thumbs .thumb.on{outline:2px solid var(--accent)}
+.phone .lab{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--muted)}
+.phone .good{background:var(--accent-soft);border-left:4px solid var(--accent);border-radius:8px;padding:9px 11px;font-size:13px;line-height:1.5}
+
+.flow{display:grid;gap:10px;counter-reset:f}
+.flow .st{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;align-items:start;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.flow .st::before{counter-increment:f;content:counter(f);width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--accent-fg);display:grid;place-items:center;font-weight:700;font-size:14px}
+.flow .st b{display:block;font-size:15px}
+.flow .st span{font-size:14px;color:var(--muted)}
+.flow .st em{display:block;margin-top:4px;font-size:12px;color:var(--accent);font-style:normal;font-weight:500}
+.copy{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:18px;display:grid;gap:6px;align-content:start}
+.copy .q{font-size:17px;font-weight:700;line-height:1.45}
+.copy .c{font-size:13px;color:var(--muted)}
+
+.src{font-size:14px;color:var(--muted);display:grid;gap:6px;padding-left:18px;margin:0}
+footer{margin-top:16px;padding-top:24px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);display:grid;gap:4px}
+
+@media (max-width:760px){
+  .hero .wrap{padding-block:64px 44px}
+  .grid2,.grid3,.grid4,.pgrid,.who,.swot{grid-template-columns:1fr}
+  .phone-wrap{max-width:none}
+}
+/* ===== 감성 레이어: 자극을 낮춘 파스텔, 번지는 물결, 둥근 형태 ===== */
+:root{--head:"Gowun Dodum","Noto Sans KR",sans-serif;
+  --tone1:#f9e2d1;--tone2:#e3ecda;--tone3:#ece3f2;--tone4:#dce9ee;--tone5:#f7ecc8}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--tone1:#3d2e23;--tone2:#28332a;--tone3:#322b3a;--tone4:#243138;--tone5:#3a3421}}
+:root[data-theme="dark"]{--tone1:#3d2e23;--tone2:#28332a;--tone3:#322b3a;--tone4:#243138;--tone5:#3a3421}
+
+h1,h2,.panel h3.pt,.stat .n,.goal,.copy .q,.psec > h4,.card h3,.persona h3{font-family:var(--head);font-weight:400}
+.panel h3.pt{font-weight:400}
+.sec > h2{font-size:32px}
+.sec > h2::after{content:"";display:block;width:56px;height:6px;border-radius:99px;margin-top:12px;background:linear-gradient(90deg,var(--accent),var(--tone1))}
+
+/* 히어로: 퍼져 나가며 옅어지는 물결(자극이 줄어드는 느낌)과 번지는 색 */
+.hero::before,.hero::after{content:"";position:absolute;border-radius:50%;filter:blur(70px);pointer-events:none}
+.hero::before{width:420px;height:420px;left:-120px;top:-120px;background:var(--tone1);opacity:.9}
+.hero::after{width:460px;height:460px;right:-140px;bottom:-140px;background:var(--tone2);opacity:.9}
+.hero .rings{position:absolute;left:50%;top:50%;width:min(1200px,150vw);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;
+  background:repeating-radial-gradient(circle,transparent 0 62px,color-mix(in srgb,var(--accent) 16%,transparent) 62px 63px);
+  -webkit-mask-image:radial-gradient(circle,#000 0,transparent 66%);mask-image:radial-gradient(circle,#000 0,transparent 66%)}
+.hero .wrap{position:relative;z-index:1}
+.hero h1{font-size:clamp(36px,7vw,68px);line-height:1.25}
+.hero h1 em{font-style:normal;padding:0 .08em;background:linear-gradient(transparent 60%,color-mix(in srgb,var(--accent) 24%,transparent) 60% 90%,transparent 90%)}
+.hero .kicker::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-right:8px;vertical-align:middle}
+.hero p.lead{font-size:clamp(17px,2.3vw,21px)}
+.enter{box-shadow:0 10px 24px color-mix(in srgb,var(--accent) 28%,transparent)}
+.chip{background:color-mix(in srgb,var(--surface) 80%,transparent);border-color:color-mix(in srgb,var(--accent) 22%,var(--line))}
+
+/* 각 장 배경: 모서리에서 번지는 색 */
+.slide:not(.hero){background:
+  radial-gradient(520px 380px at 100% 0,var(--tone2) 0,transparent 70%),
+  radial-gradient(520px 380px at 0 100%,var(--tone1) 0,transparent 70%)}
+
+/* 카드: 더 둥글고 부드럽게, 칸마다 다른 파스텔 */
+.card,.stat,.persona,.copy,.tbl,.note,.gap,.promise,.usp{border-radius:20px}
+.card,.stat,.persona,.copy{box-shadow:0 8px 22px rgba(90,60,30,.06)}
+.grid3>.card:nth-child(3n+1),.grid4>.stat:nth-child(4n+1),.principles .card:nth-child(4n+1){background:var(--tone1)}
+.grid3>.card:nth-child(3n+2),.grid4>.stat:nth-child(4n+2),.principles .card:nth-child(4n+2){background:var(--tone2)}
+.grid3>.card:nth-child(3n+3),.grid4>.stat:nth-child(4n+3),.principles .card:nth-child(4n+3){background:var(--tone3)}
+.grid4>.stat:nth-child(4n+4),.principles .card:nth-child(4n+4){background:var(--tone4)}
+.card,.stat{border-color:color-mix(in srgb,var(--accent) 12%,var(--line))}
+.card p,.card li{color:var(--fg);opacity:.82}
+.stat .n{font-size:32px}
+.goal{border:0;position:relative;padding:10px 0 10px 56px;font-size:clamp(20px,3vw,26px);line-height:1.55;max-width:26em}
+.goal::before{content:"\201C";position:absolute;left:0;top:-6px;font-size:76px;line-height:1;color:var(--accent);opacity:.35;font-family:Georgia,serif}
+
+/* 서비스 탭: 서비스마다 다른 색 */
+#tab-tutor,#p-tutor{--t:var(--tone1)}
+#tab-benefit,#p-benefit{--t:var(--tone2)}
+#tab-card,#p-card{--t:var(--tone3)}
+#tab-easyread,#p-easyread{--t:var(--tone4)}
+#tab-creator,#p-creator{--t:var(--tone5)}
+.tab{background:var(--t,var(--surface));border-radius:18px;padding:14px 16px;border-color:transparent;box-shadow:0 6px 16px rgba(90,60,30,.07)}
+.tab small{color:var(--fg);opacity:.7}
+.tab[aria-selected="true"]{box-shadow:0 10px 22px color-mix(in srgb,var(--accent) 30%,transparent)}
+.panel{--accent-soft:var(--t);border-radius:26px;border-top:10px solid var(--t);box-shadow:0 14px 34px rgba(90,60,30,.08)}
+.panel .tag{display:inline-block;background:var(--t);padding:2px 12px;border-radius:999px}
+.psec > h4{display:flex;align-items:center;gap:10px;font-size:24px}
+.psec > h4::before{content:"";flex:none;width:14px;height:14px;border-radius:50%;background:var(--t);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 18%,transparent)}
+.pin button{background:var(--surface);border-color:var(--line);color:var(--fg)}
+.pin button[aria-selected="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+th{background:var(--t,var(--accent-soft))}
+.phones{border-radius:24px}
+@media (max-width:760px){.sec > h2{font-size:26px}.goal{padding-left:44px}}
+</style>
+
+</head><body>
+<div class="deck" id="deck">
+<header class="slide hero">
+  <div class="rings" aria-hidden="true"></div>
+  <div class="wrap">
+    <p class="kicker">캡스톤 디자인 프로젝트</p>
+    <h1>감각이 예민한 사람도, <em>편안하게</em>.</h1>
+    <p class="lead">소리, 빛, 냄새, 사람 밀집. 이런 자극에 지치는 사람과 그 곁의 사람들을 위해, 설명서 없이 쓸 수 있는 다섯 가지 서비스를 기획했습니다.</p>
+    <div class="meta"><span class="chip">기획 단계</span><span class="chip">웹앱 기반</span><span class="chip">서비스 5종</span></div>
+    <button type="button" class="enter" id="enter">내용 보기</button>
+  </div>
+</header>
+
+<div class="slide"><div class="wrap">
+
+  <section class="sec" id="direction" aria-labelledby="d-h">
+    <h2 id="d-h">1. 프로젝트 방향성</h2>
+    <p class="goal">정보를 읽고 입력하는 부담을 줄여서, 감각과 인지의 문턱 때문에 놓치던 것을 닿게 합니다.</p>
+    <div class="body">
+      <h3 style="font-size:18px;margin-bottom:10px">센서리 프렌들리란</h3>
+      <p style="color:var(--muted);max-width:42em">소리, 빛, 냄새, 사람 밀집 같은 감각 자극을 줄인 시간대나 공간을 운영해, 감각이 예민한 사람도 편하게 이용하도록 하는 접근 방식입니다. 장애인 전용 공간이 아니라 자극을 낮춰 더 많은 사람이 편하게 쓰는 환경을 만드는 것이 핵심입니다.</p>
+      <div class="grid3" style="margin-top:20px">
+        <div class="card"><h3>시간대 운영형</h3><p>정해진 시간에만 음악과 안내방송을 끄고 조명을 낮춥니다.</p><p class="ex">호주 Coles·Woolworths의 Quiet Hour</p></div>
+        <div class="card"><h3>상영·행사형</h3><p>조명을 약간 켜 두고 음량을 낮춰, 움직이거나 소리를 내도 괜찮은 상영을 엽니다.</p><p class="ex">미국 AMC Sensory Friendly Films</p></div>
+        <div class="card"><h3>상시 인증형</h3><p>직원 교육과 시설 기준을 갖춘 장소에 인증을 부여합니다.</p><p class="ex">미국 KultureCity Sensory Inclusive</p></div>
+      </div>
+      <p class="gap">국내 대형 업체의 정기 감각 친화 상영이나 국내 인증 제도는 이번 조사에서 확인하지 못했습니다. 국내에서 비어 있는 이 자리에서 출발합니다.</p>
+      <h3 style="font-size:18px;margin:32px 0 10px">서비스가 공유하는 설계 원칙</h3>
+      <div class="grid4 principles">
+        <div class="card"><b>말로 시작</b><p>타이핑이 어려운 사람도 음성으로 시작할 수 있어야 합니다.</p></div>
+        <div class="card"><b>그림으로 안내</b><p>글보다 그림과 아이콘을 먼저 보여 줍니다.</p></div>
+        <div class="card"><b>한 번에 하나</b><p>한 화면에 한 가지 일만 둡니다. 화면 자극도 줄입니다.</p></div>
+        <div class="card"><b>설치 없이</b><p>링크, QR, 태그로 바로 열립니다.</p></div>
+      </div>
+    </div>
+  </section>
+
+</div></div>
+<div class="slide"><div class="wrap">
+  <section class="sec" id="market" aria-labelledby="m-h">
+    <h2 id="m-h">2. 시장 분석: 왜 지금인가</h2>
+    <p class="sub">대상 인구는 크고 계속 늘고 있으며, 취약계층의 디지털 활용 수준은 아직 일반 국민에 못 미칩니다. 서비스별 조사는 각 탭에 있습니다.</p>
+    <div class="body grid4">
+      <div class="stat"><div class="n">20.3%</div><div class="l">65세 이상 인구 비중 (1,051만 명)</div><div class="s">2025년, 처음으로 20%를 넘음(초고령사회 기준). 통계청 2025 고령자 통계 <a href="https://www.newsis.com/view/NISX20250929_0003347644" target="_blank" rel="noopener">보도</a></div></div>
+      <div class="stat"><div class="n">약 97만 명</div><div class="l">노인 치매 환자 (유병률 9.17%)</div><div class="s">2025년 추정. 2026년 100만 명 돌파 예상. 2023년 치매역학조사 결과를 인용한 2025년 3월 보도 <a href="https://weekly.khan.co.kr/article/202503121436001" target="_blank" rel="noopener">보도</a></div></div>
+      <div class="stat"><div class="n">약 263만 명</div><div class="l">등록장애인 (전체 인구의 5.1%)</div><div class="s">2025년 말 262만 7,761명. 보건복지부 '2025년도 등록장애인 현황 통계'(2026년 4월 공개). 이 중 65세 이상이 56.9% <a href="https://www.khan.co.kr/article/202604191532001/" target="_blank" rel="noopener">보도</a></div></div>
+      <div class="stat"><div class="n">77.5%</div><div class="l">취약계층 디지털 정보화 수준 (일반 국민 대비)</div><div class="s">2024년, 전년 대비 0.6%p 상승. 과학기술정보통신부 정보격차 실태조사 <a href="https://www.mt.co.kr/tech/2025/03/27/2025032709322530454" target="_blank" rel="noopener">보도</a></div></div>
+    </div>
+    <p class="note">수치는 모두 공개 보도와 발표를 바탕으로 한 것이며, 발표 전 원문 확인을 권장합니다.</p>
+  </section>
+
+</div></div>
+<div class="slide"><div class="wrap">
+  <section class="sec" id="services" aria-labelledby="s-h">
+    <h2 id="s-h">3. 다섯 가지 서비스</h2>
+    <p class="sub">탭을 눌러 서비스별로 살펴보세요. 각 탭에 현황 조사, 화면, 검증 가설, 3C·SWOT, STP, 페르소나, 퍼널, 홍보, 로드맵이 들어 있습니다.</p>
+    <div class="legend" aria-label="표시 안내"><span><span class="badge usp-b" style="margin-left:0">USP</span> <span class="t">우리만의 차별점</span>. 기존 대안과 다른 이유</span><span><span class="badge seg" style="margin-left:0">SEGMENT</span> <span class="t">쓰는 사람의 그룹</span>. 누구를 위한 서비스인지</span></div>
+    <div class="body">
+      <div class="tabs-scroll"><div class="tablist" role="tablist" aria-label="서비스 선택" id="tablist"></div></div>
+      <div id="panels"></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>센서리 프렌들리 캡스톤 디자인 · 기획안</span>
+    <span>이 페이지의 서비스는 아직 만들어지는 중인 기획이며, 실제 운영 중인 서비스가 아닙니다.</span>
+  </footer>
+</div></div>
+</div>
+
+<nav class="slidenav" aria-label="페이지 넘기기">
+  <button type="button" id="prev" aria-label="이전">‹</button>
+  <div class="dots" id="dots"></div>
+  <button type="button" id="next" aria-label="다음">›</button>
+</nav>
+
+<script>
+function A(t,u){return "<a href='"+u+"' target='_blank' rel='noopener'>"+t+"</a>"}
+function li(a){return a.map(function(x){return "<li>"+x+"</li>"}).join("")}
+function ph(bar,body,cap){return "<figure class='phone-wrap'><div class='phone'><div class='bar'>"+bar+"</div>"+body+"</div><figcaption>"+cap+"</figcaption></figure>"}
+
+var S = [
+/* ============ ① 손주 AI ============ */
+{ id:"tutor", cat:"세대 연결", name:"손주 AI 튜터",
+ one:"어르신이 \"카톡 사진 보내는 법\"을 물으면, 지금 보는 화면에 맞춰 그림으로 한 단계씩 알려줍니다.",
+ problem:["스마트폰은 있지만 메신저, 송금, 예약에서 막혀 자녀에게 자꾸 묻게 됩니다.","자녀는 전화로 설명하다 지치고, 어르신은 눈치가 보여 질문을 줄입니다.","영상과 블로그 설명은 화면이 달라 따라 하기 어렵습니다."],
+ who:[["핵심","스마트폰 활용이 서툰 60~80대"],["함께 쓰는 사람","자녀. 설치를 돕고 막힌 단계를 알림으로 받음"],["배포 채널","복지관, 주민센터 디지털 교육"]],
+ usp:["질문한 순간의 앱 화면에 맞춘 단계별 그림 안내","몇 번을 물어도 괜찮은 '무한 인내심 손주'","자녀에게 어르신이 어려워한 기능을 요약해서 전달(선택)"],
+ feat:["음성 또는 큰 글씨로 질문","자주 묻는 질문 20개를 그림 카드로 제공","한 번에 한 단계씩, '다음' 버튼으로 이동","막힌 단계를 링크로 자녀에게 전달"],
+ promise:"AI가 틀린 화면을 설명하지 않도록, 처음에는 사람이 검수한 콘텐츠로 시작합니다.",
+ research:{
+  lede:"공공 교육은 빠르게 커지고 있습니다. 비어 있는 곳은 교육이 끝난 뒤 혼자 막힌 순간입니다.",
+  stats:[
+   ["약 430만 명","AI디지털배움터 누적 교육 인원(2020년 시작 이후)","2026년 5월 보도 "+A("보도","https://v.daum.net/v/20260507120319524")],
+   ["37 → 69곳","AI디지털배움터 거점센터","기존 37곳에서 전국 69곳으로 확대(신규 32곳). 2026년 5월 보도 "+A("보도","https://v.daum.net/v/20260507120319524")],
+   ["4,200 → 6,000곳+","경로당·복지관 등 찾아가는 교육 장소(올해 → 내년)","2026년 5월 보도 기준 "+A("보도","https://v.daum.net/v/20260507120319524")]
+  ],
+  alts:[
+   ["디지털배움터(과기정통부)","복지관·주민센터 등에서 고령층 대상 무료 교육. 스마트폰 사용법에서 생성형 AI 교육까지 확대","교육 시간 밖에서 막힌 순간의 즉석 도움은 확인하지 못함","교육 이후의 복습과 즉석 질문을 맡는다"],
+   ["자녀의 전화·화면 설명","즉각적이고 어르신 사정에 맞춘 설명","자녀의 시간과 인내에 의존한다(기획팀 판단)","자녀 부담을 줄이고 막힌 단계만 요약해 전달"],
+   ["유튜브·블로그 설명","누구나 볼 수 있는 무료 자료","화면과 기종이 달라 그대로 따라 하기 어렵다(기획팀 판단)","지금 화면에 맞춘 그림 단계"]
+  ]},
+ screens:[
+  ph("손주 AI","<h5>무엇이 궁금하세요?</h5><div class='mic'>말하기</div><div class='box'>\"카톡으로 사진 보내고 싶어\"</div><div class='row'><span>자주 묻는 질문</span><span>›</span></div><div class='row'><span>사진 보내기</span><span>›</span></div><div class='ex'>예시 화면</div>","질문하기<br>음성이나 큰 글씨"),
+  ph("손주 AI","<div class='step'>2 / 4 단계</div><div class='prog'><span class='on'></span><span class='on'></span><span></span><span></span></div><h5>사진 그림을 눌러요</h5><div class='box'>채팅창 왼쪽 아래의 + 모양을 눌러요.</div><div class='box big'>[ + 그림, 갤러리 그림 ]</div><div class='btn'>다음</div><div class='ex'>예시 화면</div>","한 번에 한 단계"),
+  ph("손주 AI","<h5>자주 묻는 질문</h5><div class='tiles'><div class='tile'><i>+</i>사진 보내기</div><div class='tile'><i>₩</i>송금하기</div><div class='tile'><i>▶</i>영상통화</div><div class='tile'><i>A</i>글자 크게</div></div><div class='row'><span>더 보기 (20개)</span><span>›</span></div><div class='ex'>예시 화면</div>","그림 카드 질문"),
+  ph("손주 AI","<h5>3단계에서 멈췄어요</h5><div class='prog'><span class='on'></span><span class='on'></span><span class='on'></span><span></span></div><div class='bub'>\"사진 고르는 게 어려워.\"</div><div class='good'>자녀에게 알림이 갔어요.<br>기다리는 동안 한 번 더 보여 드릴게요.</div><div class='btn'>처음부터 다시 보기</div><div class='btn ghost'>자녀에게 전화</div><div class='ex'>예시 화면</div>","막힌 단계를 자녀에게 전달")
+ ],
+ pmf:[["어르신이 영상보다 화면 맞춤 그림 안내를 따라 과업을 끝낸다.","어르신 사용성 테스트 5명, '카톡 사진 보내기' 과업","5명 중 4명 완료"],
+      ["자녀가 막힌 단계 알림을 받고 어르신 질문 전화가 줄어든다.","자녀 5명 사용 후 인터뷰","질문 전화 감소를 체감"]],
+ c3:{customer:["스마트폰 기능에서 막히는 60~80대와 그 자녀","공통 니즈: 눈치 보지 않고 반복해서 묻고 싶다"],company:["화면에 맞춘 그림 단계 콘텐츠","설치 없는 웹","한계: 앱 화면 변경에 맞춰 콘텐츠를 갱신해야 함"]},
+ swot:{S:["그림 단계라는 명확한 가치","설치 없이 시작","자녀와 어르신 양쪽을 연결"],W:["앱 화면이 바뀌면 콘텐츠를 갱신해야 한다","범용 AI와 기능이 겹친다","웹을 여는 것 자체가 어르신에게 장벽"],O:["공공 디지털 교육이 확대 중이라 연계 가능","AI 활용 교육 수요 증가"],T:["공공·통신사 교육 서비스 확대","AI가 틀린 화면을 설명할 위험"]},
+ stp:{seg:["스마트폰은 쓰지만 기능에서 막히는 60~80대","어르신을 돕는 30~50대 자녀"],t1:"1순위 · 자녀가 도입을 돕는 어르신. 자녀가 링크를 보내 주고 막힌 단계를 함께 확인한다.",t2:"2순위 · 디지털 교육 기관. 교육 이후 복습 도구로 추천한다.",pos:"교육이 끝난 뒤에도 혼자 쓸 수 있는, 그림으로 알려 주는 손주."},
+ personas:[
+  {av:"순자",name:"정순자, 78세",role:"혼자 사는 어르신",sit:"손주 사진을 카톡으로 받고 싶지만 저장이 어렵다. 자녀에게 자꾸 묻기 미안하다.",goal:"혼자서 사진을 보내고 받는다.",pain:"설명을 들어도 화면이 달라 따라 하지 못한다.",uses:"질문하기, 그림 단계 카드"},
+  {av:"민호",name:"정민호, 48세",role:"바쁜 자녀",sit:"어머니의 질문 전화가 업무 중에도 이어진다.",goal:"전화 없이도 어머니가 스스로 해결하게 한다.",pain:"전화로는 화면을 볼 수 없어 설명이 어렵다.",uses:"막힌 단계 알림"}],
+ funnel:[["인지","복지관 디지털 교육 수료 후 '복습 도구'로 안내, 자녀 단체방에 링크 공유","안내 접촉 수, 링크 접속 수"],["첫 사용","자녀가 링크를 보내고 첫 질문을 함께 한다","첫 과업 시작률"],["성공 경험","사진 보내기를 혼자 완료한다","과업 완료율"],["재사용","새 기능이 막힐 때 다시 연다","재방문, 질문 종류 수"],["추천","어르신이 친구에게 알려 준다","공유 링크 수"]],
+ promo:[["자녀 대상","\"엄마, 이제 전화 안 해도 돼요.\"","가족 대상 SNS, 부모님 선물 후기"],["어르신 대상","\"모르면 말로 물어보세요. 그림으로 알려 드려요.\"","복지관 디지털 교육 시간, 경로당 시연"]],
+ road:[["리서치","어르신 5명과 자녀 5명 인터뷰, 어르신이 가장 많이 막히는 기능 20개 정리","질문 20개 확정"],["프로토타입","그림 카드 5개로 사용성 테스트","핵심 과업 완료율 확인"],["MVP","질문 입력과 그림 단계 20개 구현","시연에서 한 과업 완료"],["파일럿","복지관 디지털 교육 수료생에게 시범 사용","위 가설 기준 달성 여부"]]
+},
+/* ============ ② 복지 ============ */
+{ id:"benefit", cat:"정보 접근", name:"복지 혜택 챗봇",
+ one:"큰 글씨와 음성 입력 화면에서 나이, 사는 곳, 소득을 말하면 받을 수 있는 혜택을 알려줍니다.",
+ problem:["복지 제도는 많고 자격 조건이 복잡해, 받을 수 있는데도 모르고 못 받습니다.","신청 사이트는 키보드 입력과 어려운 용어 때문에 직접 쓰기 어렵습니다.","자녀와 복지 담당자가 대신 찾아 주는 수고가 큽니다."],
+ who:[["핵심","혜택을 모르는 65세 이상 저소득·독거 어르신"],["함께 쓰는 사람","자녀, 사회복지사, 생활지원사"],["배포 채널","주민센터, 노인복지관, 지자체"]],
+ usp:["입력창 대신 대화: \"78살이고 혼자 살아, 연금 30만 원이야\"","조건 해석을 대신하고, 어디로 가서 무엇을 낼지 행동 단위로 안내","혜택 설명은 쉬운 말로"],
+ feat:["음성·큰 글씨 입력(나이, 지역, 가구 유형, 소득)","한 지역과 혜택 10~20개로 범위를 좁힌 데이터","결과를 '받을 수 있음 / 확인 필요 / 해당 없음'으로 구분","신청처, 준비 서류, 전화번호를 한 장 카드로 제공"],
+ promise:"참고용 안내이며 최종 확인은 담당 기관에서 합니다. 소득 같은 민감한 정보는 서버에 저장하지 않는 방향으로 설계합니다.",
+ research:{
+  lede:"공공의 혜택 검색과 지자체 AI 상담이 이미 늘고 있습니다. 차별점은 '누가, 어떻게 말하느냐'입니다.",
+  stats:[
+   ["5,000여 개","보조금24에서 조회되는 복지 지원사업","중앙부처와 지자체 사업. 민간 안내글 기준이라 공식 확인 필요 "+A("안내글","https://studygov.kr/blog/0517-subsidy24-personalized-benefit/")],
+   ["5개 시","경기도 복지행정 AI 실증(2026년 8월~연말)","수원, 화성, 평택, 시흥, 오산. 국비 1억 6,800만 원. 보도 기준 "+A("보도","https://www.segye.com/newsView/20260729518867")],
+   ["참고용","보조금24 모의계산 결과의 성격","회원가입 없이 연령, 가구원 수, 대략 소득 입력. 실제 자격은 본인인증 후 확인. 안내글 기준"]
+  ],
+  alts:[
+   ["보조금24(맞춤형 급여안내)","여러 부처와 지자체 사업을 한곳에서 조회. 간단한 모의계산 제공","화면 입력 중심이라 어르신이 혼자 쓰기에는 부담일 수 있음(기획팀 판단)","말로 입력하고 행동 단위로 결과 안내"],
+   ["지자체 AI 챗봇(포항봇, 세종 AI 충녕, 시흥 Ai흥온 등)","민원·행정 정보를 대화로 안내. 포항봇은 민원, 복지, 환경 등 정보를 제공","어르신 음성 중심으로 설계됐는지는 확인하지 못함 "+A("서울신문 보도","https://m.go.seoul.co.kr/news/2026/07/03/20260703019009"),"어르신 말투와 쉬운 말에 맞춘 대화"],
+   ["대구시 120 콜센터(음성 AI)","음성을 텍스트로 바꿔 답하고, 인식이 어려우면 상담원에게 자동 연결","노인 전용이 아니라 차량등록, 여권 분야","음성 인식 실패 시 사람에게 연결하는 방식을 참고"],
+   ["주민센터·복지관 상담","사람이 직접 상담","방문과 대기가 필요하다(기획팀 판단)","방문 전 준비를 돕는 사전 점검"]
+  ]},
+ screens:[
+  ph("복지 혜택","<h5>이야기해 주세요</h5><div class='mic'>말하기</div><div class='box'>\"78살이고 혼자 살아요. 연금은 30만 원이에요.\"</div><div class='row'><span>나이</span><span>78세 ✓</span></div><div class='row'><span>가구</span><span>혼자 ✓</span></div><div class='ex'>예시 화면</div>","말로 입력"),
+  ph("복지 혜택","<h5>받을 수 있는 혜택</h5><div class='row'><span>기초연금</span><span class='pill'>확인 필요</span></div><div class='row'><span>노인맞춤돌봄서비스</span><span class='pill'>받을 수 있음</span></div><div class='box'>신청은 주민센터에서 해요. 신분증을 가져가세요.</div><div class='btn'>주민센터에 전화</div><div class='ex'>예시 화면 · 참고용</div>","행동 단위 결과"),
+  ph("복지 혜택","<h5>직접 눌러서 입력해요</h5><div class='row'><span>나이</span><span class='big'>78세</span></div><div class='row'><span>사는 곳</span><span class='big'>한 지역 선택</span></div><div class='tiles'><div class='tile on'>혼자 살아요</div><div class='tile'>가족과 살아요</div></div><div class='row'><span>한 달 소득</span><span class='big'>30만 원</span></div><div class='btn'>혜택 찾기</div><div class='ex'>예시 화면</div>","큰 글씨 입력"),
+  ph("신청 카드","<h5>노인맞춤돌봄서비스</h5><div class='good'><b>어디로 가요?</b><br>가까운 주민센터</div><div class='box'><b>가져갈 것</b><br>· 신분증<br>· 통장 사본</div><div class='btn'>전화하기 (02-000-0000)</div><div class='btn ghost'>카드를 가족에게 보내기</div><div class='ex'>예시 화면 · 번호는 가상 · 참고용</div>","신청처·서류 한 장 카드")
+ ],
+ pmf:[["말로 네 가지를 이야기하면 혜택 후보를 이해한다.","음성 입력 후 결과 이해도 질문, 소요 시간 측정","3분 이내, 이해도 질문 정답"],
+      ["결과 카드를 보고 어르신이 신청처로 실제로 간다.","시범 사용 후 2주 뒤 전화 확인","결과를 본 사람의 신청 행동 확인"]],
+ c3:{customer:["받을 수 있는 혜택을 모르는 어르신","대신 찾아 주는 자녀와 복지 담당자"],company:["음성 대화와 행동 단위 안내","범위를 좁힌 정확한 데이터","한계: 제도 변경 반영과 정확성 책임"]},
+ swot:{S:["말로 시작하는 입력","행동 단위의 결과 안내","한 지역으로 시작해 정확도를 높임"],W:["복지 데이터를 계속 갱신해야 한다","음성 인식이 사투리와 소음에 약할 수 있다","최종 자격 판정은 하지 못한다"],O:["지자체 AI 복지 상담 실증이 시작되어 협력 가능성이 있다","초고령사회 진입"],T:["공공 서비스가 비슷한 기능을 확대","잘못된 안내가 혜택 포기로 이어질 수 있다","AI 과의존과 책임 소재 우려"]},
+ stp:{seg:["혜택을 모르는 저소득·독거 어르신","대신 찾아 주는 자녀, 복지 담당자"],t1:"1순위 · 복지 담당자와 생활지원사. 방문 상담에서 어르신과 함께 쓴다.",t2:"2순위 · 자녀. 부모님 혜택을 대신 확인한다.",pos:"어르신이 말로 묻고, 어디로 가서 무엇을 낼지까지 알려 주는 복지 길잡이."},
+ personas:[
+  {av:"복동",name:"김복동, 81세",role:"독거 어르신",sit:"혜택이 있다고 들었지만 사이트가 어렵고 신청 방법을 모른다.",goal:"자기에게 맞는 혜택과 신청처를 안다.",pain:"입력해야 하는 칸이 많고 용어가 어렵다.",uses:"말로 입력, 결과 카드"},
+  {av:"은영",name:"최은영, 52세",role:"생활지원사",sit:"담당 어르신이 많아 혜택 안내를 일일이 설명하기 어렵다.",goal:"방문 시 빠르게 후보를 확인한다.",pain:"제도가 자주 바뀌어 최신 정보를 쫓기 힘들다.",uses:"사전 점검 화면"}],
+ funnel:[["인지","복지관과 주민센터 게시, 생활지원사 방문 시연","시연 수, 링크 접속 수"],["첫 사용","생활지원사와 함께 처음 말해 본다","첫 입력 완료율"],["성공 경험","받을 수 있는 혜택 후보를 알게 된다","결과 이해도"],["재사용","새 혜택이 생기면 다시 확인한다","재방문"],["추천","이웃 어르신에게 알려 준다","공유 수, 협력 기관 수"]],
+ promo:[["어르신 대상","\"말만 하세요. 받을 수 있는 걸 찾아 드려요.\"","노인복지관, 주민센터 게시, 방문 시연"],["기관 대상","\"방문 상담 전에 혜택 후보를 미리 정리해 드립니다.\"","지자체, 사회복지사 협회, 생활지원사 교육"]],
+ road:[["리서치","주민센터와 복지관 인터뷰, 혜택 10~20개 선정","혜택 목록 확정"],["프로토타입","음성 입력과 결과 카드 사용성 테스트","이해도 질문 정답률 확인"],["MVP","한 지역 데이터로 매칭 구현","시연에서 결과 카드 확인"],["파일럿","복지관에서 시범 사용, 담당자 검수","위 가설 기준 달성 여부"]]
+},
+/* ============ ③ 카드 ============ */
+{ id:"card", cat:"응급·소통", name:"나를 알리는 카드",
+ one:"의사소통이 어려운 상황에서 폰이나 키링을 태그하면, 도움 방법과 보호자 연락처, 주의사항이 바로 뜹니다.",
+ problem:["청각·언어·발달장애인과 치매 어르신은 위기에서 자신의 상태를 설명하기 어렵습니다.","주변 사람과 구급대원은 어떻게 도와야 하는지 모릅니다. 큰 소리로 재촉하면 오히려 상황이 나빠질 수 있습니다.","감각 과부하로 말을 잃는 자폐 아동과 성인도 같은 어려움을 겪습니다."],
+ who:[["핵심","청각·언어·발달장애인, 치매 어르신, 자폐 아동"],["함께 쓰는 사람","보호자가 카드를 만들고 관리"],["정보를 보는 사람","경찰, 119, 지하철 직원, 일반 시민"]],
+ usp:["앱 설치 없이 태그만으로 열리는 웹페이지","질병명이 아니라 \"이렇게 도와주세요\"가 중심","공개 범위는 본인과 보호자가 직접 정함","키링, 스티커, 폰 케이스 등 휴대하기 쉬운 형태"],
+ feat:["유형별 템플릿(청각, 언어, 발달장애, 치매, 임산부)으로 카드 만들기","태그 시 \"지금 이렇게 도와주세요\" 3줄과 보호자 전화 버튼","필담용 큰 글씨 모드, 아이콘 그림 모드","NFC가 안 되는 기기를 위한 QR 대체"],
+ promise:"장애나 질환 정보는 꼭 필요한 만큼만 저장하고, 카드 이름과 디자인은 당사자와 함께 정해 낙인이 되지 않게 합니다. 의료 진단을 대신하지 않습니다.",
+ research:{
+  lede:"위기 대응 제도는 있지만 사전 등록률이 낮고, 주변 사람이 지금 어떻게 도울지는 안내하지 않습니다.",
+  stats:[
+   ["월 1,382건","2025년 치매 환자 실종 신고 월평균","7월 1,651건, 8월 1,634건으로 여름철이 가장 많음. 경찰청 통계를 인용한 보도 "+A("보도","https://www.mt.co.kr/society/2026/08/04/2026080413382867762")],
+   ["0.6%","119안심콜을 이용하는 장애인 비율","복잡한 인증절차가 원인으로 지적됨. 2022년 10월 보도라 최신 수치는 확인 필요 "+A("뉴스1","https://www.news1.kr/amp/society/general-society/4822557")],
+   ["약 2%","119안심콜 누적 가입자 비율","2025년 7월 기준 102만 3,138명. "+A("보도","https://www.jjan.kr/articleAmp/20250907580186")]  ],
+  alts:[
+   ["119안심콜","미리 등록한 정보를 119 상황실에 제공","가입률이 낮고, 신청이 어렵다는 지적이 있다","보호자가 폰에서 쉽게 만드는 카드. 119안심콜 가입 안내도 연결"],
+   ["119 다매체 신고(문자, 영상통화, 앱)","문자, 영상통화, 앱으로 청각·언어장애인이 신고하는 경로(세부 현황은 확인 필요)","신고 이전, 현장의 주변 사람이 어떻게 도울지는 다루지 않음(기획팀 판단)","현장에서 주변 사람에게 소통 방법을 알려 준다"],
+   ["지문 사전등록과 배회감지기","치매 환자 실종 대응 제도(지문 사전등록, 배회감지기 보급). 보급 수치는 확인하지 못함","발견 이후 어떻게 대화하고 도울지는 안내하지 않음(기획팀 판단)","발견한 시민에게 소통법과 연락처를 안내"]
+  ]},
+ screens:[
+  ph("카드 만들기","<h5>유형을 골라요</h5><div class='row'><span>청각장애</span><span>›</span></div><div class='row'><span>언어장애</span><span>›</span></div><div class='row'><span>발달장애·자폐</span><span class='pill'>선택됨</span></div><div class='row'><span>치매</span><span>›</span></div><div class='btn'>문구 고르기</div><div class='ex'>예시 화면</div>","보호자가 만드는 화면"),
+  ph("나를 알리는 카드","<h5>이분은 도움이 필요할 수 있어요</h5><div class='box'><b>이렇게 도와주세요</b><br>· 천천히, 짧게 말해 주세요<br>· 큰 소리는 힘들어요<br>· 글로 써서 보여 주세요</div><div class='btn'>보호자에게 전화</div><div class='ex'>예시 화면 · 번호는 가상</div>","태그하면 바로 열림"),
+  ph("필담 모드","<div class='lab'>보여 주세요</div><div class='box big' style='font-size:20px;line-height:1.5'>천천히, 짧게<br>말해 주세요.</div><div class='tiles'><div class='tile on'><i>A</i>큰 글씨</div><div class='tile'><i>◐</i>그림</div></div><div class='btn ghost'>직접 쓰기</div><div class='ex'>예시 화면</div>","큰 글씨·그림 모드"),
+  ph("공개 범위","<h5>누구에게 보일까요?</h5><div class='row'><span>도와주는 방법</span><span class='sw'></span></div><div class='row'><span>보호자 전화</span><span class='sw'></span></div><div class='row'><span>질환·약 정보</span><span class='sw off'></span></div><div class='box'>꼭 필요한 만큼만 보여 줘요. 언제든 바꿀 수 있어요.</div><div class='ex'>예시 화면</div>","공개 범위는 직접 정해요"),
+  ph("QR·키링","<h5>태그가 안 될 때는 QR</h5><div class='qr' role='img' aria-label='QR 예시'></div><div class='tiles'><div class='tile on'>키링</div><div class='tile'>스티커</div></div><div class='btn'>보호자에게 내보내기</div><div class='ex'>예시 화면</div>","QR 대체와 휴대 형태")
+ ],
+ pmf:[["보호자가 카드를 직접 10분 안에 만든다.","보호자 5명 제작 테스트","10분 이내 제작"],
+      ["처음 본 사람이 태그 후 30초 안에 도움 방법을 이해한다.","시나리오 롤플레이(일반인 참여)","30초 안에 이해"]],
+ c3:{customer:["위기에서 설명이 어려운 당사자와 보호자","현장에서 도와야 하는 경찰, 119, 시민"],company:["앱 설치 없는 태그 웹페이지","소통 방법 중심 문구","한계: 당사자 자문과 개인정보 보호"]},
+ swot:{S:["설치 없이 열리는 구조","당사자와 도와주는 사람, 양면 설계","센서리 프렌들리와 직접 연결"],W:["Web NFC는 지원 기기가 제한적일 수 있어 QR 병행이 필요","주변 사람이 카드를 태그해 보는 습관이 필요","당사자 자문 없이는 문구 신뢰가 낮다"],O:["치매 환자 실종 신고가 월평균 1,380여 건으로 많다","119안심콜 가입률이 낮아 사전 정보 등록 수요가 있다"],T:["민감 정보 유출 위험","'장애 낙인' 우려","기존 공공 제도 확대"]},
+ stp:{seg:["자폐·발달장애 가족","치매 어르신 가족","청각·언어장애인","임산부, 만성질환자"],t1:"1순위 · 자폐·발달장애 아동과 성인의 보호자. 카드를 만들고 아이 소지품에 붙인다.",t2:"2순위 · 치매안심센터와 장애인복지관. 보호자 교육과 배포를 돕는다.",pos:"말이 안 나올 때, 주변 사람에게 '어떻게 도울지'를 대신 말해 주는 카드."},
+ personas:[
+  {av:"지현",name:"김지현, 38세",role:"자폐 스펙트럼 아들의 보호자",sit:"아이가 낯선 곳의 소리와 조명 때문에 힘들어 한다. 길을 잃으면 설명하지 못할까 걱정이다.",goal:"위기에서도 주변 사람이 도울 수 있게 한다.",pain:"기존 제도는 등록 절차가 복잡하다.",uses:"카드 만들기, 키링"},
+  {av:"지훈",name:"서지훈, 34세",role:"지하철 역무원",sit:"말을 못 하는 승객을 만났을 때 어떻게 도울지 알기 어렵다.",goal:"30초 안에 도움 방법을 파악한다.",pain:"큰 소리로 재촉하면 안 되는지 모른다.",uses:"태그해서 여는 카드 화면"}],
+ funnel:[["인지","장애인 부모회, 치매안심센터, 특수학교 안내","안내 접촉 수"],["첫 사용","보호자가 템플릿을 골라 카드를 만든다","제작 완료율, 소요 시간"],["성공 경험","실제로 태그해서 화면이 열리는 것을 확인한다","태그 테스트 성공률"],["재사용","카드 문구를 수정하고 휴대품에 붙인다","카드 보유 수, 수정 횟수"],["추천","다른 보호자와 기관에 알린다","공유 수, 협력 기관 수"]],
+ promo:[["보호자 대상","\"말이 안 나올 때, 카드가 대신 말해요.\"","장애인 부모회, 치매안심센터, 특수학교"],["현장 대상","\"이 카드를 보면 이렇게 도와주세요.\"","역, 경찰서, 소방서 교육 자료"]],
+ road:[["리서치","당사자와 보호자 인터뷰, 문구 자문","문구 템플릿 확정"],["프로토타입","카드 화면과 제작 흐름 사용성 테스트","제작 시간 확인"],["MVP","카드 만들기, 태그 페이지, QR 대체","태그에서 화면 열림 시연"],["파일럿","보호자 모임과 특수학교에서 시범 사용","위 가설 기준 달성 여부"]]
+},
+/* ============ ④ 쉬운 글 ============ */
+{ id:"easyread", cat:"쉬운 정보", name:"쉬운 글 번역",
+ one:"어려운 공문, 약관, 약 설명서를 쉬운 말과 그림으로 바꿔 줍니다.",
+ problem:["공문, 약관, 약 설명서는 문장이 길고 전문 용어가 많습니다.","이해하지 못한 채 서명하거나 약을 잘못 복용하는 일이 생길 수 있습니다.","지적장애인, 문해력이 낮은 고령자, 한국어가 서툰 이주민에게 특히 큰 벽입니다."],
+ who:[["핵심","지적·발달장애인, 고령자, 한국어 초급 이주민"],["함께 쓰는 사람","병원, 약국, 공공기관, 복지시설"],["배포 채널","발달장애인지원센터, 다문화가족지원센터"]],
+ usp:["단순 요약이 아니라 Easy Read 작성 원칙(짧은 문장, 한 문장 한 의미, 그림 병기)에 따른 변환","사진 한 장으로 공문이나 약봉지를 바로 변환","원문과 나란히 보는 대조 화면","기관이 문서를 올리면 처음부터 쉬운 버전을 함께 배포"],
+ feat:["문서 1종에 집중(약 설명서 또는 구청 공문)","사진 또는 텍스트 입력 후 쉬운 말로 변환","핵심 문장에 아이콘과 그림 붙이기","원문 대조 보기와 '이 변환은 참고용' 고지"],
+ promise:"약 복용이나 법적 조건처럼 중요한 정보는 원문 대조를 기본으로 보여 주고, '쉽다'는 기준은 당사자 검수를 거쳐 정합니다.",
+ research:{
+  lede:"쉬운 정보 제작은 이미 공공과 법원에서 시작됐고, AI 변환 연구도 나왔습니다. 공통 과제는 제작 속도와 당사자 검수입니다.",
+  stats:[
+   ["28 + 10","LLM 쉬운 글 생성 연구의 평가 요소","정량 28개, 정성 10개. 발달장애인 19명, 특수교육 전문가 9명이 평가해 원문보다 가독성이 높아졌다고 보고. "+A("논문","https://scholarworks.sookmyung.ac.kr/item/6086038b-8faa-4a13-9001-1e051dab2678")],
+   ["2022년","서울행정법원 최초 이지리드 판결문","2026년에도 지적장애인 원고 사건에서 쉬운 표현과 삽화 판결문. 판사 개인 노력에 의존해 시스템화가 필요하다는 의견. "+A("보도","https://v.daum.net/v/20260708195131131")],
+   ["아직 소수","이지리드 판결문","강우찬 부장판사가 쓴 3건을 비롯해 아직 소수. 한겨레 보도 "+A("보도","https://v.daum.net/v/20260708195131131")]
+  ],
+  alts:[
+   ["쉬운 정보 제작 기관(사회적기업 소소한소통 등)","공공기관과 함께 쉬운 정보를 만들거나 자체 기획해 보급. 발달장애인 당사자가 감수위원으로 참여","수작업이라 제작 속도에 한계(기획팀 판단) "+A("보도","https://www.newsis.com/view/NISX20260220_0003520532"),"AI 초안으로 제작 시간을 줄이고 당사자 검수를 유지"],
+   ["법원 이지리드 판결문","쉬운 표현과 삽화를 담은 판결문","판사 개인의 노력에 기대고 있어 시스템화가 필요하다는 지적","기관이 문서를 올리면 쉬운 버전을 함께 만드는 구조"],
+   ["범용 AI 챗봇","쉽게 풀어서 설명해 주는 기능","Easy Read 규칙 준수, 그림 병기, 당사자 검수는 보장되지 않음(기획팀 판단)","규칙을 따르고 원문 대조를 제공"]
+  ]},
+ screens:[
+  ph("쉬운 글","<h5>사진을 찍어 주세요</h5><div class='box big'>[ 약 설명서 사진 ]</div><div class='orig'>원문: 1일 3회, 식후 30분에 복용</div><div class='btn'>쉬운 글로 바꾸기</div><div class='ex'>예시 화면</div>","사진으로 입력"),
+  ph("쉬운 글","<div class='orig'>원문: 1일 3회, 식후 30분에 복용</div><h5>쉬운 글</h5><div class='box big'>하루에 3번 먹어요.<br>밥 먹고 30분 뒤에 먹어요.</div><div class='box'>[ 약 그림 ] [ 시계 그림 ]</div><div class='btn'>원문과 나란히 보기</div>","원문 대조 보기"),
+  ph("쉬운 글","<h5>어떤 글인가요?</h5><div class='tiles'><div class='tile on'><i>+</i>약 설명서</div><div class='tile'><i>▤</i>구청 공문</div></div><div class='lab'>넣는 방법</div><div class='row'><span>사진 찍기</span><span>›</span></div><div class='row'><span>글 붙여넣기</span><span>›</span></div><div class='ex'>예시 화면</div>","문서 고르기와 입력"),
+  ph("쉬운 글","<div class='lab'>원문</div><div class='orig'>1일 3회, 식후 30분에 복용</div><div class='lab'>쉬운 글</div><div class='box big'>하루에 3번</div><div class='box big'>밥 먹고 30분 뒤</div><div class='good'>참고용이에요. 약은 약사에게 꼭 확인하세요.</div><div class='ex'>예시 화면</div>","원문 대조와 참고용 안내")
+ ],
+ pmf:[["당사자가 원문보다 변환문서를 더 잘 이해한다.","원문과 변환문 이해도 질문 비교","정답률이 원문보다 높음"],
+      ["활동지원사나 기관이 검수에 드는 시간이 수작업보다 짧다.","검수 시간 측정","수작업 제작 대비 단축"]],
+ c3:{customer:["어려운 문서에서 막히는 당사자","쉬운 정보를 제공해야 하는 기관"],company:["Easy Read 원칙에 맞춘 AI 초안","원문 대조와 검수 흐름","한계: 의미 왜곡 위험, 당사자 검수 확보"]},
+ swot:{S:["규칙 기반 변환과 원문 대조","사진 입력으로 간편","기관 문서 배포 모델"],W:["의미 왜곡 위험이 있다","그림 자동 생성 품질이 낮을 수 있다","당사자 검수 인력이 필요"],O:["공공기관과 법원에서 쉬운 정보 도입이 시작됐다","LLM 기반 쉬운 글 연구가 나오고 있다"],T:["약 복용, 법적 조건 등 위험도가 높은 문서","저작권과 사용 권한","범용 AI가 비슷한 기능을 제공"]},
+ stp:{seg:["지적·발달장애인","문해력이 낮은 고령자","한국어 초급 이주민","쉬운 정보를 만드는 기관"],t1:"1순위 · 발달장애인과 활동지원사. 약 설명서와 공문을 함께 읽는다.",t2:"2순위 · 공공기관과 병원, 약국. 문서를 쉬운 버전으로 함께 배포한다.",pos:"원칙을 지키고 원문과 비교할 수 있는 쉬운 글 변환."},
+ personas:[
+  {av:"민수",name:"박민수, 27세",role:"경도 지적장애인",sit:"구청에서 온 공문과 약 설명서를 읽어도 무슨 뜻인지 모른다.",goal:"혼자서 해야 할 일과 기한을 이해한다.",pain:"활동지원사가 없으면 처리하기 어렵다.",uses:"사진 변환, 원문 대조"},
+  {av:"리나",name:"리나, 34세",role:"한국어 초급 이주민",sit:"학교와 병원에서 온 안내문이 어렵다.",goal:"안내문 내용을 빠르게 이해한다.",pain:"사전을 찾아도 문장이 길다.",uses:"쉬운 글 변환"}],
+ funnel:[["인지","발달장애인지원센터와 다문화가족지원센터 안내","안내 접촉 수"],["첫 사용","문서 한 장을 사진으로 찍어 변환","첫 변환 성공률"],["성공 경험","내용을 이해하고 할 일을 한다","이해도 질문 정답률"],["재사용","새 문서가 올 때마다 쓴다","재사용 횟수"],["추천","기관이 쉬운 버전을 함께 배포한다","협력 기관 수"]],
+ promo:[["기관 대상","\"공문을 쉬운 버전으로 함께 보내세요.\"","지자체, 병원·약국, 발달장애인지원센터"],["당사자·보호자 대상","\"어려운 글, 사진 한 장이면 쉬워져요.\"","센터 프로그램, 활동지원사 교육"]],
+ road:[["리서치","당사자·활동지원사 인터뷰, 문서 1종 선정","대상 문서 확정"],["프로토타입","변환 결과와 대조 화면 테스트","이해도 비교"],["MVP","사진 입력, 변환, 원문 대조 구현","시연에서 변환 확인"],["파일럿","센터에서 시범 사용과 당사자 검수","위 가설 기준 달성 여부"]]
+},
+/* ============ ⑤ 크리에이터 ============ */
+{ id:"creator", cat:"역량 강화", name:"어르신 인플루언서 데뷔",
+ one:"어르신을 도움받는 대상이 아니라 이야기를 가진 콘텐츠 크리에이터로 데뷔시킵니다.",
+ problem:["어르신은 돌봄 받는 존재로 그려지지만, 실제로는 노하우와 이야기를 가진 분이 많습니다.","은퇴 후 사회적 역할과 소득 활동을 원하는 분이 있습니다.","촬영, 편집, 업로드의 기술 장벽이 큽니다."],
+ who:[["핵심","요리, 농사, 공예, 인생 경험이 있는 60~80대"],["함께 만드는 사람","자녀와 손주, 시니어클럽"],["보는 사람","같은 세대와 어르신 콘텐츠를 좋아하는 젊은 세대"]],
+ usp:["'도움받는 사람'에서 '도움 주는 사람'으로 관점 전환","촬영, 편집, 자막, 업로드를 AI가 대행해 이야기에만 집중","시청자 질문을 AI가 쉬운 말로 정리해 전하는 세대 교류"],
+ feat:["AI 인터뷰: 질문에 말로 답하면 콘텐츠 초안 생성","자동 자막과 썸네일 제안","가족 승인 후 업로드","어르신 3~5명과 하는 작은 시범 사업"],
+ promise:"어르신이 신기한 구경거리로 소비되지 않도록 주체성을 먼저 설계하고, 악플과 사기로부터 보호하는 장치를 함께 둡니다.",
+ research:{
+  lede:"시니어 대상 유튜버 교육과 공공 크리에이터 지원은 있습니다. 기존 방식은 어르신이 직접 배우는 것이고, 제작 대행은 비어 있는 쪽입니다(기획팀 판단).",
+  stats:[
+   ["53%","60대 이상이 유튜브로 뉴스를 보는 비율","한국언론진흥재단 '디지털 뉴스 리포트 2025'를 인용한 2025년 10월 보도 "+A("보도","https://bravo.etoday.co.kr/view/atc_view/17535")],
+   ["3개월","50플러스유튜버스쿨 교육 과정","채널 개설부터 촬영, 편집, 홍보까지 시니어가 직접. 서울시50플러스재단과 LG유플러스 운영. 2019년 기사라 현재 운영은 확인 필요. "+A("보도","https://futurechosun.com/archives/tag/50플러스유튜버스쿨")],
+   ["연 40팀","서울 크리에이티브포스 연간 선발(상·하반기 각 20팀)","연령 제한 없음, 영상 10개 이상 업로드 필요. 2025년 상반기 모집은 종료. "+A("서울시 공고","https://mediahub.seoul.go.kr/archives/2014544")]
+  ],
+  alts:[
+   ["50플러스유튜버스쿨","시니어가 3개월 동안 제작 전 과정을 배운다","학습 부담이 크고, 배운 뒤에도 편집이 어렵다(기획팀 판단)","AI가 편집과 자막, 업로드를 대행"],
+   ["일반 플랫폼(유튜브 등)","누구나 영상을 올릴 수 있다","촬영, 편집, 자막, 업로드를 직접 해야 한다(기획팀 판단)","어르신이 말만 해도 초안이 나오는 제작 도구"],
+   ["서울 크리에이티브포스(공공 MCN)","서울시와 서울경제진흥원이 2017년부터 운영. 스튜디오·장비 대여, 교육·멘토링. 연령 제한 없음","영상 10개 이상 업로드 같은 조건이 있어 처음 시작하는 어르신에게는 문턱이 있다(기획팀 판단) "+A("서울시 공고","https://mediahub.seoul.go.kr/archives/2014544"),"첫 영상 제작을 돕고, 가족과 함께 만드는 구조"]
+  ]},
+ screens:[
+  ph("AI 인터뷰","<h5>이 요리를 처음 하신 건 언제예요?</h5><div class='mic'>말하기</div><div class='box'>\"우리 시어머니한테 배웠지. 스무 살 때야.\"</div><div class='ex'>예시 화면</div>","말로 답하면 됩니다"),
+  ph("초안 확인","<h5>영상 초안</h5><div class='box big'>[ 영상 썸네일 ]</div><div class='box'>자막: \"스무 살에 시어머니께 배운 김치찌개\"</div><div class='row'><span>가족 승인</span><span class='pill'>대기</span></div><div class='btn'>이대로 올리기</div><div class='ex'>예시 화면</div>","초안과 가족 승인"),
+  ph("썸네일","<h5>표지를 골라요</h5><div class='thumb' style='height:96px'>[ 큰 표지 ]</div><div class='thumbs'><div class='thumb on'>1</div><div class='thumb'>2</div><div class='thumb'>3</div></div><div class='box'>자막 문구: \"스무 살에 배운 김치찌개\"</div><div class='btn'>이걸로 할게요</div><div class='ex'>예시 화면</div>","자막과 썸네일 제안"),
+  ph("가족 승인","<h5>올려도 될까요?</h5><div class='thumb'>[ 영상 ]</div><div class='row'><span>보는 사람</span><span class='pill'>가족만</span></div><div class='row'><span>댓글 보호</span><span class='sw'></span></div><div class='btn'>승인하고 올리기</div><div class='btn ghost'>고쳐 달라고 하기</div><div class='ex'>예시 화면</div>","가족 승인과 보호 장치")
+ ],
+ pmf:[["어르신이 대화만으로 콘텐츠 한 편을 완성한다.","어르신 3~5명 시범 제작","전원이 한 편 완성"],
+      ["완성 후 다음 편을 만들고 싶어 한다.","제작 후 인터뷰","다음 편 의향 확인"]],
+ c3:{customer:["이야기와 노하우를 가진 어르신","함께 만드는 가족과 시니어클럽"],company:["말로 만드는 AI 인터뷰 기반 제작","가족 협업 구조","한계: 제작, 플랫폼, 운영 범위가 넓다"]},
+ swot:{S:["주체성 중심의 차별된 관점","AI 대행으로 진입 장벽을 낮춤","세대 교류"],W:["범위가 가장 넓다","조회수와 수익 성과를 보장하지 못한다","센서리 프렌들리와의 거리"],O:["60대 이상의 절반 이상이 유튜브로 뉴스를 보는 등 시청 수요가 있다","시니어 대상 유튜버 교육과 공공 크리에이터 지원 사례가 있다"],T:["악플, 사기 노출","어르신이 구경거리로 소비될 우려","일반 플랫폼의 시니어 지원 확대"]},
+ stp:{seg:["이야기와 기술을 가진 60~80대","은퇴 후 사회 참여를 원하는 어르신","어르신과 함께 만드는 가족"],t1:"1순위 · 자녀와 손주가 도와 줄 수 있는 어르신. 가족이 승인과 업로드를 맡는다.",t2:"2순위 · 시니어클럽과 평생학습관. 시범 사업과 교육 공간을 제공한다.",pos:"배우지 않아도, 말만 하면 콘텐츠가 되는 어르신 제작 파트너."},
+ personas:[
+  {av:"영철",name:"이영철, 69세",role:"은퇴한 목수",sit:"작은 공예품을 만들고 싶고 이야기도 많지만 촬영과 편집이 어렵다.",goal:"자기 이야기를 영상으로 남긴다.",pain:"편집과 업로드가 어렵다.",uses:"AI 인터뷰, 초안 확인"},
+  {av:"하준",name:"이하준, 19세",role:"손주",sit:"할아버지 이야기를 영상으로 만들고 싶지만 시간이 부족하다.",goal:"가족 승인과 업로드를 쉽게 돕는다.",pain:"촬영부터 편집까지 혼자 하기 부담이다.",uses:"가족 승인 화면"}],
+ funnel:[["인지","시니어클럽, 평생학습관 소개","소개 접촉 수"],["첫 사용","AI 인터뷰에 말로 답한다","첫 인터뷰 완료율"],["성공 경험","영상 초안이 나오고 가족이 승인한다","초안 완성률"],["재사용","다음 이야기를 만든다","두 번째 제작 비율"],["추천","친구 어르신과 함께 만든다","공유 수, 참여 어르신 수"]],
+ promo:[["어르신 대상","\"당신의 이야기를 영상으로 남겨 드립니다.\"","시니어클럽, 평생학습관, 경로당"],["가족 대상","\"할아버지의 첫 영상, 같이 만들어요.\"","가족 대상 SNS, 지역 소식지"]],
+ road:[["리서치","어르신 5명 인터뷰, 시니어 콘텐츠 사례 정리","타깃 주제 확정"],["프로토타입","인터뷰 질문과 초안 화면 테스트","질문 흐름 확인"],["MVP","AI 인터뷰와 자막 초안 구현","한 편 제작 시연"],["파일럿","어르신 3~5명 시범 제작과 반응 측정","위 가설 기준 달성 여부"]]
+}
+];
+
+var tl = document.getElementById("tablist"), pn = document.getElementById("panels");
+
+function build(s){
+  var r=s.research;
+  var j=[["overview","개요"],["research","현황 조사"],["screens","화면"],["pmf","검증 가설"],["c3","3C·SWOT"],["stp","STP"],["persona","페르소나"],["funnel","퍼널"],["promo","홍보"],["road","로드맵"]];
+  var h="";
+  h+="<p class='tag'>"+s.cat+"</p><h3 class='pt'>"+s.name+"</h3><p class='one'>"+s.one+"</p>";
+  h+="<div class='pin' role='tablist' aria-label='"+s.name+" 세부 내용'>"+j.map(function(x,k){return "<button type='button' role='tab' tabindex='"+(k?-1:0)+"' aria-selected='"+(k?"false":"true")+"' data-t='"+s.id+"-"+x[0]+"'>"+x[1]+"</button>"}).join("")+"</div>";
+  h+="<div class='psec' id='"+s.id+"-overview'><h4>개요</h4><div class='pgrid'>"+
+     "<div class='blk'><h6>해결하려는 문제</h6><ul>"+li(s.problem)+"</ul></div>"+
+     "<div class='blk'><h6>핵심 기능</h6><ul>"+li(s.feat)+"</ul></div>"+
+     "<div class='blk full'><h6>누구를 위한 서비스인가 <span class='badge seg'>SEGMENT</span></h6><div class='who'>"+s.who.map(function(w){return "<div><b>"+w[0]+"</b>"+w[1]+"</div>"}).join("")+"</div></div>"+
+     "<div class='blk full usp'><h6>차별점 <span class='badge usp-b'>USP</span></h6><ul>"+li(s.usp)+"</ul></div>"+
+     "<div class='blk full promise'><b>지키려는 약속</b>"+s.promise+"</div></div></div>";
+  h+="<div class='psec' id='"+s.id+"-research'><h4>현황 조사</h4><p class='lede'>"+r.lede+"</p>"+
+     "<div class='grid"+(r.stats.length===4?"4":"3")+"'>"+r.stats.map(function(x){return "<div class='stat'><div class='n'>"+x[0]+"</div><div class='l'>"+x[1]+"</div><div class='s'>"+x[2]+"</div></div>"}).join("")+"</div>"+
+     "<h5>기존 대안과 비어 있는 자리</h5><div class='tbl scroll-x'><table><thead><tr><th>기존 대안</th><th>하는 일</th><th>비어 있는 곳</th><th>우리의 자리</th></tr></thead><tbody>"+
+     r.alts.map(function(a){return "<tr><td>"+a[0]+"</td><td>"+a[1]+"</td><td>"+a[2]+"</td><td>"+a[3]+"</td></tr>"}).join("")+"</tbody></table></div>"+
+     "<p class='note'>수치는 보도와 연구에서 가져왔고, '기획팀 판단'은 근거 자료를 찾지 못한 항목입니다. 발표 전 원문 확인이 필요합니다.</p></div>";
+  h+="<div class='psec' id='"+s.id+"-screens'><h4>화면 미리보기</h4><p class='lede'>구상한 화면입니다. 이름, 번호, 문구는 예시입니다.</p><div class='phones'>"+s.screens.join("")+"</div></div>";
+  h+="<div class='psec' id='"+s.id+"-pmf'><h4>시장 적합성(PMF) 가설과 검증</h4><p class='lede'>아직 검증 전입니다. 기준 수치는 모두 가정입니다.</p><div class='tbl scroll-x'><table><thead><tr><th>가설</th><th>검증 방법</th><th>성공 기준(가정)</th><th>상태</th></tr></thead><tbody>"+
+     s.pmf.map(function(p){return "<tr><td>"+p[0]+"</td><td>"+p[1]+"</td><td>"+p[2]+"</td><td><span class='pill'>검증 전</span></td></tr>"}).join("")+"</tbody></table></div></div>";
+  h+="<div class='psec' id='"+s.id+"-c3'><h4>3C와 SWOT</h4><div class='grid3'>"+
+     "<div class='card'><h3>Customer · 고객</h3><ul>"+li(s.c3.customer)+"</ul></div>"+
+     "<div class='card'><h3>Competitor · 경쟁</h3><ul>"+li(r.alts.map(function(a){return a[0]}))+"</ul></div>"+
+     "<div class='card'><h3>Company · 우리</h3><ul>"+li(s.c3.company)+"</ul></div></div>"+
+     "<div class='swot' style='margin-top:12px'>"+
+     "<div class='card'><h3><i>S</i>강점</h3><ul>"+li(s.swot.S)+"</ul></div>"+
+     "<div class='card'><h3><i>W</i>약점</h3><ul>"+li(s.swot.W)+"</ul></div>"+
+     "<div class='card'><h3><i>O</i>기회</h3><ul>"+li(s.swot.O)+"</ul></div>"+
+     "<div class='card'><h3><i>T</i>위협</h3><ul>"+li(s.swot.T)+"</ul></div></div></div>";
+  h+="<div class='psec' id='"+s.id+"-stp'><h4>STP</h4>"+
+     "<h5>세그먼트 <span class='badge seg'>SEGMENT</span></h5><div class='card'><ul>"+li(s.stp.seg)+"</ul></div>"+
+     "<h5>타깃</h5><div class='grid2'><div class='card'><p>"+s.stp.t1+"</p></div><div class='card'><p>"+s.stp.t2+"</p></div></div>"+
+     "<h5>포지셔닝 한 줄 <span class='badge usp-b'>USP</span></h5><p class='goal' style='margin-top:0;font-size:18px'>"+s.stp.pos+"</p></div>";
+  h+="<div class='psec' id='"+s.id+"-persona'><h4>페르소나</h4><p class='lede'>가상 인물입니다. 인터뷰 후 수정합니다.</p><div class='grid2'>"+
+     s.personas.map(function(p){return "<div class='persona'><div class='top'><div class='avatar'>"+p.av+"</div><div><h3>"+p.name+"</h3><div class='role'>"+p.role+"</div></div></div><dl><div><dt>상황</dt><dd>"+p.sit+"</dd></div><div><dt>목표</dt><dd>"+p.goal+"</dd></div><div><dt>불편</dt><dd>"+p.pain+"</dd></div><div><dt>쓰는 기능</dt><dd>"+p.uses+"</dd></div></dl></div>"}).join("")+"</div></div>";
+  h+="<div class='psec' id='"+s.id+"-funnel'><h4>퍼널</h4><p class='lede'>목표 수치는 파일럿 후 정합니다.</p><div class='flow'>"+
+     s.funnel.map(function(f){return "<div class='st'><div><b>"+f[0]+"</b><span>"+f[1]+"</span><em>지표: "+f[2]+"</em></div></div>"}).join("")+"</div></div>";
+  h+="<div class='psec' id='"+s.id+"-promo'><h4>홍보와 메시지</h4><p class='lede'>문구는 초안입니다.</p><div class='grid2'>"+
+     s.promo.map(function(p){return "<div class='copy'><span class='c'>"+p[0]+"</span><span class='q'>"+p[1]+"</span><span class='c'>채널: "+p[2]+"</span></div>"}).join("")+"</div></div>";
+  h+="<div class='psec' id='"+s.id+"-road'><h4>로드맵</h4><p class='lede'>학기 일정이 정해지면 주 단위로 배정합니다.</p><div class='flow'>"+
+     s.road.map(function(f){return "<div class='st'><div><b>"+f[0]+"</b><span>"+f[1]+"</span><em>통과 조건: "+f[2]+"</em></div></div>"}).join("")+"</div></div>";
+  return h;
+}
+
+S.forEach(function(s,i){
+  var b = document.createElement("button");
+  b.className="tab"; b.type="button"; b.id="tab-"+s.id; b.setAttribute("role","tab");
+  b.setAttribute("aria-controls","p-"+s.id);
+  b.innerHTML="<small>"+s.cat+"</small><b>"+s.name+"</b>";
+  b.addEventListener("click",function(){show(s.id,true)});
+  b.addEventListener("keydown",function(e){
+    var n=-1;
+    if(e.key==="ArrowRight")n=(i+1)%S.length; else if(e.key==="ArrowLeft")n=(i+S.length-1)%S.length;
+    else if(e.key==="Home")n=0; else if(e.key==="End")n=S.length-1;
+    if(n>-1){e.preventDefault();show(S[n].id,true);document.getElementById("tab-"+S[n].id).focus()}
+  });
+  tl.appendChild(b);
+  var p = document.createElement("section");
+  p.className="panel"; p.id="p-"+s.id; p.setAttribute("role","tabpanel"); p.setAttribute("aria-labelledby","tab-"+s.id); p.hidden=true;
+  p.innerHTML=build(s);
+  [].forEach.call(p.querySelectorAll(".psec"),function(el,k){ el.hidden=k>0; });
+  p.addEventListener("click",function(e){
+    var t=e.target.closest&&e.target.closest("button[data-t]"); if(!t)return;
+    subShow(p,t.getAttribute("data-t"));
+  });
+  p.addEventListener("keydown",function(e){
+    var t=e.target.closest&&e.target.closest("button[data-t]"); if(!t)return;
+    var bs=[].slice.call(p.querySelectorAll(".pin button")), k=bs.indexOf(t), n=-1;
+    if(e.key==="ArrowRight")n=(k+1)%bs.length; else if(e.key==="ArrowLeft")n=(k+bs.length-1)%bs.length;
+    else if(e.key==="Home")n=0; else if(e.key==="End")n=bs.length-1;
+    if(n>-1){ e.preventDefault(); e.stopPropagation(); subShow(p,bs[n].getAttribute("data-t")); bs[n].focus(); }
+  });
+  pn.appendChild(p);
+});
+
+function resetServices(){
+  clearTimeout(pn._ft);
+  S.forEach(function(s,n){
+    var p=document.getElementById("p-"+s.id), t=document.getElementById("tab-"+s.id), on=n===0;
+    clearTimeout(p._ft);
+    p.hidden=!on; p.classList.remove("fade"); p.scrollTop=0;
+    t.setAttribute("aria-selected",on?"true":"false"); t.tabIndex=on?0:-1;
+    [].forEach.call(p.querySelectorAll(".psec"),function(el,k){ el.hidden=k>0; el.classList.remove("fade"); });
+    [].forEach.call(p.querySelectorAll(".pin button"),function(b,k){ b.setAttribute("aria-selected",k===0?"true":"false"); b.tabIndex=k===0?0:-1; });
+  });
+  var sl=document.getElementById("services").closest(".slide"); if(sl)sl.scrollTop=0;
+}
+function subShow(p,id){
+  var secs=[].slice.call(p.querySelectorAll(".psec"));
+  clearTimeout(p._ft);
+  secs.forEach(function(el){ el.classList.remove("fade"); });
+  var cur=secs.filter(function(el){return !el.hidden})[0], next=document.getElementById(id);
+  [].forEach.call(p.querySelectorAll(".pin button"),function(b){
+    var on=b.getAttribute("data-t")===id; b.setAttribute("aria-selected",on?"true":"false"); b.tabIndex=on?0:-1;
+  });
+  if(!next||cur===next)return;
+  var calm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function swap(){
+    secs.forEach(function(el){ el.hidden=el!==next; });
+    if(!calm){ next.classList.add("fade"); void next.offsetWidth; next.classList.remove("fade"); }
+    var pin=p.querySelector(".pin"); if(pin)pin.scrollIntoView({block:"nearest"});
+  }
+  if(calm||!cur){ swap(); return; }
+  cur.classList.add("fade");
+  p._ft=setTimeout(swap,300);
+}
+function show(id,push){
+  var found=false;
+  S.forEach(function(s){
+    var on = s.id===id; if(on)found=true;
+    var t=document.getElementById("tab-"+s.id);
+    t.setAttribute("aria-selected",on?"true":"false");
+    t.tabIndex=on?0:-1;
+  });
+  if(!found){ show(S[0].id,false); return; }
+  var panels=S.map(function(s){return document.getElementById("p-"+s.id)}), next=document.getElementById("p-"+id);
+  clearTimeout(pn._ft);
+  panels.forEach(function(el){ el.classList.remove("fade"); });
+  var cur=panels.filter(function(el){return !el.hidden})[0];
+  if(cur!==next){
+    var calm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var swap=function(){
+      panels.forEach(function(el){ el.hidden=el!==next; });
+      if(!calm){ next.classList.add("fade"); void next.offsetWidth; next.classList.remove("fade"); }
+    };
+    if(calm||!cur)swap(); else { cur.classList.add("fade"); pn._ft=setTimeout(swap,300); }
+  }
+  if(push){ try{ history.replaceState(null,"","#"+id) }catch(e){ location.hash=id } }
+}
+var deck=document.getElementById("deck"), slides=[].slice.call(document.querySelectorAll(".slide"));
+var names=["처음","방향성","시장 분석","서비스 5종"], cur=0;
+var prevB=document.getElementById("prev"), nextB=document.getElementById("next"), dots=document.getElementById("dots");
+names.forEach(function(n,i){
+  var d=document.createElement("button"); d.type="button"; d.textContent=n;
+  d.addEventListener("click",function(){go(i)}); dots.appendChild(d);
+});
+var fadeT=0, svcIdx=slides.indexOf(document.getElementById("services").closest(".slide"));
+function go(i){
+  i=Math.max(0,Math.min(slides.length-1,i)); if(i===cur)return;
+  var calm=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+  mark(i); clearTimeout(fadeT);
+  if(calm){ if(i===svcIdx)resetServices(); deck.scrollTo({left:i*deck.clientWidth,behavior:"auto"}); return; }
+  deck.classList.add("fade");
+  fadeT=setTimeout(function(){ if(i===svcIdx)resetServices(); deck.scrollTo({left:i*deck.clientWidth,behavior:"auto"}); deck.classList.remove("fade"); },320);
+}
+function mark(i){
+  cur=i; prevB.disabled=i===0; nextB.disabled=i===slides.length-1;
+  [].forEach.call(dots.children,function(d,k){ if(k===i)d.setAttribute("aria-current","true"); else d.removeAttribute("aria-current"); });
+}
+deck.addEventListener("scroll",function(){ var i=Math.round(deck.scrollLeft/deck.clientWidth); if(i!==cur){ if(i===svcIdx)resetServices(); mark(i); } });
+window.addEventListener("resize",function(){ deck.scrollTo({left:cur*deck.clientWidth,behavior:"auto"}); });
+prevB.addEventListener("click",function(){go(cur-1)});
+nextB.addEventListener("click",function(){go(cur+1)});
+document.getElementById("enter").addEventListener("click",function(){go(1)});
+document.addEventListener("keydown",function(e){
+  if(e.defaultPrevented||e.altKey||e.ctrlKey||e.metaKey)return;
+  if(e.key==="ArrowRight")go(cur+1); else if(e.key==="ArrowLeft")go(cur-1);
+});
+mark(0);
+function route(){
+  var h=location.hash.slice(1);
+  var tg=h&&document.getElementById(h), sl=tg&&tg.closest&&tg.closest(".slide");
+  if(sl)go(slides.indexOf(sl));
+  var isTab=S.some(function(s){return s.id===h});
+  var cur=document.querySelector(".panel:not([hidden])");
+  show(isTab?h:(cur?cur.id.slice(2):S[0].id),false);
+}
+window.addEventListener("hashchange",route);
+route();
+</script>
+
+</body></html>
