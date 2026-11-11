@@ -316,9 +316,18 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   td:first-child{font-size:15px}
   .slidenav{bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 }
+/* 하단 넘기기 바: 폰에서는 화면 폭에 꽉 맞추고 네 칸을 똑같은 폭으로 나눈다 */
+@media (max-width:640px){
+  .slidenav{left:12px;right:12px;transform:none;max-width:none;width:auto;gap:4px;padding:5px;bottom:calc(14px + env(safe-area-inset-bottom,0px));justify-content:space-between}
+  .slidenav button{width:38px;height:38px;font-size:20px;flex:none}
+  .dots{flex:1 1 0;min-width:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px}
+  .dots button{width:100%;min-width:0;padding:9px 0;font-size:12.5px;line-height:1.2;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:clip}
+  .dots button[aria-current="true"]{box-shadow:inset 0 0 0 1.5px var(--accent)}
+}
 @media (max-width:360px){
   .hero h1{font-size:29px}
-  .dots button{font-size:11.5px;padding:7px 5px}
+  .slidenav button{width:34px;height:34px;font-size:18px}
+  .dots button{font-size:11px}
 }
 </style>
 
